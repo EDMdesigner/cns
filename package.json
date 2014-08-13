@@ -9,7 +9,7 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/EDMdesigner/EDM-MongoHandler.git"
+		"url": "https://github.com/EDMdesigner/cns.git"
 	},
 	"keywords": ["build", "git", "clone", "grunt", "forever"],
 	"dependencies": {
