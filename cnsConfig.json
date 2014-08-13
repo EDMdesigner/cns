@@ -1,0 +1,10 @@
+{
+	"git": {
+		"repositoryBase": "git@github.com:EDMdesigner",
+		"repositoryName": "EDMdesigner-API",
+		"branch": "master"
+	},
+	"deploymentsBasePath": "/Users/proland/deployments",
+	"startDir": "build/api",
+	"startCommand": "api-server.js --TEST_MODE"
+}

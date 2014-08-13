@@ -1,0 +1,16 @@
+{
+	"name": "CNS - Clone 'n' Start",
+	"description": "Clone 'n' Start - A simple tool which clones a branch from a repository, runs npm install, grunt, and starts the server with forever (and stops the previous if that was running).",
+	"version": "0.0.1",
+	"main": "cns.js",
+	"author": "Gyula Németh",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/EDMdesigner/EDM-MongoHandler.git"
+	},
+	"dependencies": {
+		"nconf": "0.6.9",
+		"dateformat": ""
+	}
+}
