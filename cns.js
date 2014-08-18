@@ -122,10 +122,10 @@ function gruntBuild() {
 
 //here, the version equals the name of the directory.
 function startNewVersion(version) {
-	console.log("Forever stop 0...");
+	console.log("Forever stop " + startCommand);
 	process.chdir(startDir);
 
-	exec("forever stop 0", function(err, stdout, stderr) {
+	exec("forever stop " + startCommand, function(err, stdout, stderr) {
 		console.log("Starting new deployment...");
 
 		exec("forever start " + startCommand, function(err, stdout, stderr) {
