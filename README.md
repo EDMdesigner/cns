@@ -7,7 +7,7 @@ Clone 'n' Start - A simple tool for deploying multiple servers. What it does are
 * clones a bunch of repositories
 * runs npm install on them
 * runs grunt on them
-* (re)starts arbitrary number of servers in each repository
+* (re)starts arbitrary number of servers with forever in each repositories
 
 ##Install
 npm install -g cns
