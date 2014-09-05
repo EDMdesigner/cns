@@ -1,144 +1,141 @@
 #!/usr/bin/env node
 
-//CNS - Clone 'n' Start
+var fs			= require("fs"),
+	nconf		= require("nconf"),
+	dateFormat	= require("dateformat"),
+	async		= require("async"),
+	cnsUtils	= require("./cnsUtils");
 
 
-var fs		= require("fs"),
-	nconf	= require("nconf"),
-	dateFormat = require("dateformat"),
-	exec	= require("child_process").exec;
-//deploy
-//deploy test
+console.log("CNS - Clone 'N' Start");
 
-//list versions
-//activate --version
-//activate previous version
+//config...
+var configFile = "./cnsConfig.json";
+nconf.argv();
 
-nconf
-	.argv()
-	.env()
-	.file({file: "./cnsConfig.json"});
+configFile = nconf.get("config");
 
-var branch			= nconf.get("git:branch"),
-	repositoryBase	= nconf.get("git:repositoryBase"),
-	repositoryName	= nconf.get("git:repositoryName");
-
-
-var dirName = dateFormat(new Date(), "yyyy-mm-dd_hh-MM-ss");
-
-var baseDir = nconf.get("deploymentsBasePath");
-
-var startDir = nconf.get("startDir");
-var startCommand = nconf.get("startCommand");
-
-
-function cloneAndStart() {
-	console.log("Clone and start...");
-	createDirs();
+console.log("Config file: ", configFile);
+if (!fs.existsSync(configFile)) {
+	return console.log(" - Config file does not exist!");
 }
 
-function createDirs() {
-	console.log("Creating directories...");
+nconf.file({file: configFile});
 
-	function dirError(dirPath) {
-		console.error("Failed to create directory: ", dirPath);
-		process.exit(1);
+
+
+var baseDir = nconf.get("deploymentsBasePath"),
+	repos = nconf.get("repos"),
+	formattedDate = dateFormat(new Date(), "yyyy-mm-dd_H-MM-ss");
+
+
+function getDirNameOfRepo(repoName) {
+	return baseDir + "/" + formattedDate + "/" + repoName;
+}
+
+var repoPaths = [];
+for (var repoName in repos) {
+	repoPaths.push(getDirNameOfRepo(repoName));
+}
+
+
+//create dirs
+// - one dir with the actual date in the deployments folder
+// - one dir in the previously created dir for every repository
+
+function createDirectories(callback) {
+	console.log(">>>>>>>>>> Creating directories <<<<<<<<<<");
+	var dir = baseDir;
+	cnsUtils.createDirIfNeeded(dir);
+	cnsUtils.createDirIfNeeded(dir + "/" + formattedDate);
+
+	for (var repoName in repos) {
+		cnsUtils.createDirIfNeeded(getDirNameOfRepo(repoName));
+	}
+	callback();
+}
+
+
+//clone all repos
+function cloneAllRepos(callback) {
+	console.log(">>>>>>>>>> Cloning repositories <<<<<<<<<<");
+	var gitRepos = [];
+	for (var repoName in repos) {
+		var act = repos[repoName].git;
+		act.path = getDirNameOfRepo(repoName);
+		gitRepos.push(act);
 	}
 
-	function createDirIfNeeded(dirPath) {
-		if (fs.existsSync(dirPath)) {
-			return;
+	async.forEachSeries(gitRepos, function(gitRepo, callback) {
+		cnsUtils.cloneRepo(gitRepo.path, gitRepo.repositoryBase, gitRepo.repositoryName, gitRepo.branch, callback);
+	}, function(err) {
+		callback();
+	});
+}
+
+//run npm installs
+function runNpmInstalls(callback) {
+	console.log(">>>>>>>>>> Running npm installs <<<<<<<<<<");
+
+	async.forEachSeries(repoPaths, cnsUtils.npmInstall, function(err) {
+		callback();
+	});
+}
+
+//run grunt scripts
+function runGruntScripts(callback) {
+	console.log(">>>>>>>>>> Running grunt scripts <<<<<<<<<<");
+
+	async.forEachSeries(repoPaths, cnsUtils.gruntBuild, function(err) {
+		callback();
+	});
+}
+
+//start all of the applications
+function restartApplications(callback) {
+	console.log(">>>>>>>>>> Starting the applications <<<<<<<<<<");
+
+	//function startNewVersion(path, startCommand, callback) {
+
+	var elems = [];
+
+	for (var repoName in repos) {
+		var act = repos[repoName].start;
+
+		var basePath = getDirNameOfRepo(repoName);
+
+		for(var prop in act) {
+			var uid = repoName + ":" + prop;
+
+			var dir = act[prop].dir;
+			var command = act[prop].command;
+
+			elems.push({
+				path: basePath + "/" + dir,
+				uid: uid,
+				startCommand: command
+			});
 		}
-
-		try {
-			fs.mkdirSync(dirPath);
-		} catch (e) {
-			dirError(dirPath);
-		}
 	}
 
-	var dirToMake = baseDir;
-	createDirIfNeeded(dirToMake);
+	//function startNewVersion(path, uid, startCommand, callback) {
 
-	dirToMake = dirToMake + "/" + repositoryName;
-	createDirIfNeeded(dirToMake);
-
-	dirToMake = dirToMake + "/" + dirName;
-	createDirIfNeeded(dirToMake);
-
-
-
-	process.chdir(dirToMake);
-
-	cloneRepo(npmInstall);
+	async.forEachSeries(elems, function(item, callback) {
+		cnsUtils.startNewVersion(item.path, item.uid, item.startCommand, callback);
+	}, function(err) {
+		callback();
+	});
 }
 
-function exitOnError(err, stdout, stderr, msg) {
-	if (err) {
-		console.error(msg);
-		console.log(stderr);
-		process.exit();
+
+async.series([
+		createDirectories,
+		cloneAllRepos,
+		runNpmInstalls,
+		runGruntScripts,
+		restartApplications
+	],
+	function(err, result) {
+		console.log("********** DONE **********");
 	}
-}
-
-
-function cloneRepo() {
-	console.log("Cloning repository...")
-	var repoUri = repositoryBase + "/" + repositoryName + ".git";
-
-	var gitCloneCommand = "git clone -b " + branch + " --single-branch " + repoUri + " .";
-	
-
-	exec(gitCloneCommand, function (err, stdout, stderr) {
-		exitOnError(err, stdout, stderr, "Repository cloning failed!");
-
-		console.log(stdout);
-
-		npmInstall();
-	});
-}
-
-function npmInstall() {
-	console.log("NPM install...")
-	exec("npm install", function(err, stdout, stderr) {
-		exitOnError(err, stdout, stderr, "NPM install failed!");
-
-		console.log(stdout);
-
-		gruntBuild();
-	});
-}
-
-function gruntBuild() {
-	console.log("Grunt build...");
-	exec("grunt", function(err, stdout, stderr) {
-		exitOnError(err, stdout, stderr, "Grunt build failed!");
-
-		console.log(stdout);
-
-		startNewVersion();
-	});
-}
-
-//here, the version equals the name of the directory.
-function startNewVersion(version) {
-	console.log("Forever stop " + startCommand);
-	process.chdir(startDir);
-
-	exec("forever stop " + startCommand, function(err, stdout, stderr) {
-		console.log("Starting new deployment...");
-
-		exec("forever start " + startCommand, function(err, stdout, stderr) {
-			exitOnError(err, stdout, stderr, "Starting new instance failed!");
-
-			console.log(stdout);
-
-			console.log("DEPLOYMENT SUCCESSFUL!!!");
-		});	
-	});
-}
-
-
-
-
-cloneAndStart();
+);

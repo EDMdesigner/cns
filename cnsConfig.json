@@ -1,10 +1,43 @@
 {
-	"git": {
-		"repositoryBase": "git@github.com:EDMdesigner",
-		"repositoryName": "EDMdesigner-API",
-		"branch": "master"
-	},
 	"deploymentsBasePath": "/Users/proland/deployments",
-	"startDir": "build/api",
-	"startCommand": "api-server.js --TEST_MODE"
+	"repos": {
+		"EDMdesigner-API": {
+			"git": {
+				"repositoryBase": "git@github.com:EDMdesigner",
+				"repositoryName": "EDMdesigner-API",
+				"branch": "master"
+			},
+			"start": {
+				"api": {
+					"dir": "build/api",
+					"command": "api-server.js --TEST_MODE"
+				},
+				"dashboard": {
+					"dir": "src",
+					"command": "dashboard-server.js --TEST_MODE"
+				},
+				"admin": {
+					"dir": "src",
+					"command": "admin-server.js --TEST_MODE"
+				}
+			}
+		},
+		"EDMdesigner-App": {
+			"git": {
+				"repositoryBase": "git@github.com:EDMdesigner",
+				"repositoryName": "EDMdesigner-App",
+				"branch": "master"
+			},
+			"start": {
+				"app": {
+					"dir": "build/app",
+					"command": "server.js --TEST_MODE"
+				},
+				"admin": {
+					"dir": "src",
+					"command": "admin-server.js --TEST_MODE"
+				}
+			}
+		}
+	}
 }

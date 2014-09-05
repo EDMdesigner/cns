@@ -1,7 +1,7 @@
 {
 	"name": "cns",
 	"description": "Clone 'n' Start - A simple tool which clones a branch from a repository, runs npm install, grunt, and starts the server with forever (and stops the previous if that was running).",
-	"version": "0.0.2",
+	"version": "1.0.0",
 	"bin": {
 		"cns": "cns.js"
 	},
@@ -14,6 +14,7 @@
 	"keywords": ["build", "git", "clone", "grunt", "forever"],
 	"dependencies": {
 		"nconf": "0.6.9",
+		"async": "",
 		"dateformat": ""
 	}
 }
