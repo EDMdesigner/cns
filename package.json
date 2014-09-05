@@ -1,7 +1,7 @@
 {
 	"name": "cns",
-	"description": "Clone 'n' Start - A simple tool which clones a branch from a repository, runs npm install, grunt, and starts the server with forever (and stops the previous if that was running).",
-	"version": "1.0.0",
+	"description": "Clone 'n' Start - A simple tool for deploying multiple servers.",
+	"version": "1.0.1",
 	"bin": {
 		"cns": "cns.js"
 	},
