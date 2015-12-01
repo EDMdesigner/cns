@@ -55,7 +55,7 @@ function npmInstall(path, callback) {
 	process.chdir(path);
 
 	console.log("NPM install...", path)
-	exec("npm install", function(err, stdout, stderr) {
+	exec("npm install --production", function(err, stdout, stderr) {
 		exitOnError(err, stdout, stderr, "NPM install failed!");
 
 		console.log(stdout);
