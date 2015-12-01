@@ -1,7 +1,7 @@
 {
 	"name": "cns",
 	"description": "Clone 'n' Start - A simple tool for deploying multiple servers.",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"bin": {
 		"cns": "cns.js"
 	},
