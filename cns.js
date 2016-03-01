@@ -25,7 +25,8 @@ nconf.file({file: configFile});
 
 
 var baseDir = nconf.get("deploymentsBasePath"),
-	repos = nconf.get("repos"),
+	repos = nconf.get("repos")
+	noGrunt = nconf.get("noGrunt"),
 	formattedDate = dateFormat(new Date(), "yyyy-mm-dd_H-MM-ss");
 
 
@@ -85,6 +86,10 @@ function runNpmInstalls(callback) {
 //run grunt scripts
 function runGruntScripts(callback) {
 	console.log(">>>>>>>>>> Running grunt scripts <<<<<<<<<<");
+
+	if (noGrunt) {
+		return callback();
+	}
 
 	async.forEachSeries(repoPaths, cnsUtils.gruntBuild, function(err) {
 		callback();
